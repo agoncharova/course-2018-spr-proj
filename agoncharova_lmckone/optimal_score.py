@@ -5,7 +5,7 @@ import prov.model
 import datetime
 import uuid
 import dml
-import z3
+from z3 import *
 
 class optimal_score(dml.Algorithm):
 	contributor = 'agoncharova_lmckone'
@@ -61,29 +61,44 @@ class optimal_score(dml.Algorithm):
 
 	def compute_optimal_num_businesses(all_data):
 		'''
-		Assuming that adding 2 businesses will decrease the score by 0.01,
-		we want to see how many businesses we can add to an area using z3.
 		High number of evictions and crimes lead to a higher score, so 
-		we want to lower the score. 
+		we want to lower the score?
+		z3 solver allows us to solve proprietary equations with
+		various constraints.
 		'''
 		# setup
-		# S = z3.Solver()
-		# (x1,x2) = [z3.Real('x'+str(i)) for i in range(1,3)]
-		# S.add(x2 <= 7, x3 <= 8, x4 <= 6)
 		df = pd.DataFrame(all_data)
-
+		print(df)
 		# isolate and format the vars
+		tracts = list(df['Tract'].as_matrix())
 		businesses = list(df['businesses'].as_matrix())
 		stability = list(df['stability'].as_matrix())
-		additional_businesses = [0]*len(businesses)
-		print(additional_businesses)
-		print(businesses)
-		print(stability)
-		# if score is already <= 1, don't touch it
-
-
-		return 0
-
+		additional_businesses = [9999]*len(businesses) # 204 entries
+		results = []
+		# minimize the stability score
+		for i in range(204):
+			S = Optimize()
+			new = Real('new'+str(i))
+			num_businesses = Int('num_businesses'+str(i))
+			S.add(new > 0) # new stability score has to be positive
+			S.minimize(new)
+			if(stability[i] > 0.5):
+				S.add(num_businesses <= 5) # we can't add more than 5 businesses
+				S.add(num_businesses == (stability[i] - new)/ 0.2)
+			if(stability[i] < 0.5 and stability[i] > 0.3):
+				S.add(num_businesses <= 3) # we can't add more than 3 businesses
+				S.add(num_businesses == (stability[i] - new)/ 0.1)
+			S.check()
+			model = S.model()
+			new_score = model[new].as_decimal(5)[:7]
+			addl_businesses = model[num_businesses].as_long()
+			result = {"Tract": tracts[i],
+								"new_optimal_score": new_score,
+								"stability_score": str(stability[i]),
+								"addl_businesses": str(addl_businesses),
+								"businesses": str(businesses[i]) }
+			results.append(result)			
+		return results
 
 	@staticmethod
 	def execute(trial=False):
@@ -99,7 +114,19 @@ class optimal_score(dml.Algorithm):
 
 		all_data = this.get_stability_scores_from_repo()
 		# corr = this.explore_business_data(all_data)
-		this.compute_optimal_num_businesses(all_data)
+		results = this.compute_optimal_num_businesses(all_data)
+
+		client = dml.pymongo.MongoClient()
+		repo = client.repo
+		repo.authenticate('agoncharova_lmckone', 'agoncharova_lmckone')
+
+		optimal_score_collection = repo['agoncharova_lmckone.optimal_score']
+
+		repo.dropCollection('optimal_score')
+		repo.createCollection('optimal_score')
+		repo['agoncharova_lmckone.optimal_score'].insert_many(results)
+		repo.logout()
+
 		return {"start": startTime, "end":  datetime.datetime.now()}
 
 	@staticmethod

@@ -110,8 +110,7 @@ class boston_businesses(dml.Algorithm):
 		Retrives business data using the Foursquare API for Boston and SF
 		and saves to a database
 		'''
-		fr = boston_businesses
-		pp = fr.pp
+		pp = boston_businesses.pp
 		# names of db and collections 
 		db_name = 'agoncharova_lmckone'
 		#sf_coll = 'agoncharova_lmckone.sf_businesses'
@@ -121,20 +120,9 @@ class boston_businesses(dml.Algorithm):
 		startTime = datetime.datetime.now()
 		client = dml.pymongo.MongoClient()
 		repo = client.repo
-		repo.authenticate('agoncharova_lmckone', 'agoncharova_lmckone')
-		
-		# get business data from Foursquare and save to DB collections {sf_businesses, boston_businesses}
-		#response = fr.get_data_by_city("SF")
-		#print("Got the following number of businesses in SF:")
-		#print(len(response))
-		#repo.dropCollection( sf_coll )
-		#repo.createCollection( sf_coll )
-		#repo[ sf_coll ].insert_many(response)
-		#repo[ sf_coll ].metadata( {'complete':True} )
-		#print("Saved SF data")
-		#print(repo[ sf_coll ].metadata())
-		
-		response = fr.get_data_by_city("Boston")
+		repo.authenticate('agoncharova_lmckone', 'agoncharova_lmckone')		
+
+		response = boston_businesses.get_data_by_city("Boston")
 		print("Got the following number of businesses in Boston:")		
 		print(len(response))
 		repo.dropCollection('agoncharova_lmckone.boston_businesses')
@@ -153,7 +141,6 @@ class boston_businesses(dml.Algorithm):
 		document describing that invocation event.
 		'''
 		# shorten class name
-		fr = boston_businesses
 		# Set up the database connection.
 		client = dml.pymongo.MongoClient()
 		repo = client.repo
@@ -180,12 +167,12 @@ class boston_businesses(dml.Algorithm):
 		# TODO: How do we format the complex set of queries to the API?
 
 		# Boston query
-		boston_queries = fr.construct_set_of_queries("Boston")
-		doc.usage(get_boston, resource, startTime, None,
-							{prov.model.PROV_TYPE:'ont:Retrieval',
-							'ont:Query': "|".join(boston_queries)
-							}
-							)
+		# boston_queries = construct_set_of_queries("Boston")
+		# doc.usage(get_boston, resource, startTime, None,
+		# 					{prov.model.PROV_TYPE:'ont:Retrieval',
+		# 					'ont:Query': "|".join(boston_queries)
+		# 					}
+		# 					)
 		
 		#sf_businesses = doc.entity('dat:agoncharova_lmckone#sf_businesses', {prov.model.PROV_LABEL:'SF Businesses', prov.model.PROV_TYPE:'ont:DataSet'})
 		#doc.wasAttributedTo(sf_businesses, this_script)
@@ -201,4 +188,5 @@ class boston_businesses(dml.Algorithm):
 		        
 		return doc
 
-boston_businesses.execute()
+# boston_businesses.execute()
+# boston_businesses.provenance()

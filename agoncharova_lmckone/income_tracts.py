@@ -74,9 +74,7 @@ class income_tracts(dml.Algorithm):
 		return doc
 
 
-income_tracts.execute()
-
-
+# income_tracts.execute()
 
 #url = 'http://www2.census.gov/geo/tiger/TIGER2010/TABBLOCK/2010/tl_2010_25025_tabblock10.zip'
 #response = ur.urlopen(url)
