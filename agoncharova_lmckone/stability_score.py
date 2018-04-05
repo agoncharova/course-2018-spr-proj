@@ -54,7 +54,7 @@ class stability_score(dml.Algorithm):
 
             ## take a look at coefficients used by Desmond in his paper to maybe weight these differently
             stabilityScore = (evictionScore + crimeScore) / 2.0
-            print("entry stabilityScore " + str(stabilityScore) + " crimes " + str(entry['properties']['crimes']) + " eviction " + str(entry['properties']['evictions']))
+            # print("entry stabilityScore " + str(stabilityScore) + " crimes " + str(entry['properties']['crimes']) + " eviction " + str(entry['properties']['evictions']))
             score.append({
                 'Tract': entry['properties']['GEOID'],
                 'stability': stabilityScore,
@@ -116,5 +116,5 @@ class stability_score(dml.Algorithm):
 
         return doc
 
-
-stability_score.execute()
+# stability_score.execute()
+# stability_score.provenance()

@@ -13,7 +13,7 @@ class optimal_score(dml.Algorithm):
 	writes = ['agoncharova_lmckone.optimal_score']
 
 	# HELPER
-
+	@staticmethod
 	def get_stability_scores_from_repo():
 		'''
 		Gets and returns the data from the stability_score collection.
@@ -31,23 +31,21 @@ class optimal_score(dml.Algorithm):
 		repo.logout()
 		return stability_scores_arr
 
+	@staticmethod
 	def explore_business_data(all_data):
 		'''
 		Normalize business data and compute correlation coefficient 
 		between the number 
 		'''
-		# normalize the business scores for each entry
+		# normalize the business scores for each entry and look whether they are correlated
 		# inspiration: http://sebastianraschka.com/Articles/2014_about_feature_scaling.html#about-standardization
 		df = pd.DataFrame(all_data)
-		# print(df)
 
 		std_scale = preprocessing.StandardScaler().fit(df[['businesses']])
 		df_std = std_scale.transform(df[['businesses']])
-		# print(df_std[:10])
 		
 		minmax_scale = preprocessing.MinMaxScaler().fit(df[['businesses']])
 		df_minmax = minmax_scale.transform(df[['businesses']])
-		# print(df_minmax[:25])
 
 		stability_list = list(df['stability'].as_matrix())
 		print(len(stability_list))
@@ -56,9 +54,9 @@ class optimal_score(dml.Algorithm):
 		# find correlation between the normalized business scores and the optimal score
 		corr = pearsonr(stability_list, df_minmax_formatted)  # corr = 0.10446045881042658, 2-tailed p-val = 0.13704210138510017 
 		# non zero correlation of 0.1 obviously means it is CORRELATED
-		# let's optimize
 		return corr[0]
 
+	@staticmethod
 	def compute_optimal_num_businesses(all_data):
 		'''
 		High number of evictions and crimes lead to a higher score, so 
@@ -68,14 +66,13 @@ class optimal_score(dml.Algorithm):
 		'''
 		# setup
 		df = pd.DataFrame(all_data)
-		print(df)
 		# isolate and format the vars
 		tracts = list(df['Tract'].as_matrix())
 		businesses = list(df['businesses'].as_matrix())
 		stability = list(df['stability'].as_matrix())
 		additional_businesses = [9999]*len(businesses) # 204 entries
 		results = []
-		# minimize the stability score
+		# let's optimize
 		for i in range(204):
 			S = Optimize()
 			new = Real('new'+str(i))
@@ -97,7 +94,7 @@ class optimal_score(dml.Algorithm):
 								"stability_score": str(stability[i]),
 								"addl_businesses": str(addl_businesses),
 								"businesses": str(businesses[i]) }
-			results.append(result)			
+			results.append(result)
 		return results
 
 	@staticmethod
@@ -105,15 +102,16 @@ class optimal_score(dml.Algorithm):
 		'''
 		Incorporate the number of businesses into the tract stability score 
 		by first normalizing it in construct_business_score.	
-		Run an SMT solver to see how many businesses could be added
-		to a tract in order to increase stability score.
+		Run an SMT solver using z3 library to see how many businesses could be added
+		to a tract in order to improve stability score.
 		'''
 		startTime = datetime.datetime.now()
 		
 		this = optimal_score		
 
 		all_data = this.get_stability_scores_from_repo()
-		# corr = this.explore_business_data(all_data)
+		corr = this.explore_business_data(all_data)
+		print("correlation between businesses and stability score is: " + str(corr))
 		results = this.compute_optimal_num_businesses(all_data)
 
 		client = dml.pymongo.MongoClient()
@@ -126,7 +124,7 @@ class optimal_score(dml.Algorithm):
 		repo.createCollection('optimal_score')
 		repo['agoncharova_lmckone.optimal_score'].insert_many(results)
 		repo.logout()
-
+		print("ran SMT solver and saved data to optimal_score collection")
 		return {"start": startTime, "end":  datetime.datetime.now()}
 
 	@staticmethod
@@ -162,5 +160,5 @@ class optimal_score(dml.Algorithm):
 
 		return doc
 
-optimal_score.execute()
-optimal_score.provenance()
+# optimal_score.execute()
+# optimal_score.provenance()

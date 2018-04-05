@@ -12,6 +12,18 @@ class k_means_stability_score(dml.Algorithm):
 	reads = ['agoncharova_lmckone.stability_score']
 	writes = ['agoncharova_lmckone.stability_score_kmeans']
 
+	@staticmethod
+	def graph_clusters(data, centroids):
+		'''
+		Uses matplotlib to print the data (numpy array)
+		and the centroids
+		'''
+		print("graphing data")
+		plt.scatter(data[:, 0], data[:, 1])
+		plt.scatter(centroids[:, 0], centroids[:, 1], c='r')
+		plt.show()
+
+	@staticmethod
 	def cluster_by_evictions_stability(all_data):
 		num_clusters = 5
 
@@ -21,12 +33,11 @@ class k_means_stability_score(dml.Algorithm):
 		numpy_arr = array(pre_numpy_arr)
 
 		centroids, distortion = kmeans(numpy_arr, num_clusters)
-		# plt.scatter(numpy_arr[:, 0], numpy_arr[:, 1])
-		# plt.scatter(centroids[:, 0], centroids[:, 1], c='r')
-		# plt.show()
-		print("ran cluster_by_evictions_stability for " str(num_clusters) + "clusters")
+		print("ran cluster_by_evictions_stability with " + str(num_clusters) + " clusters")
+		# k_means_stability_score.graph_clusters(numpy_arr, centroids)
 		return 0
 
+	@staticmethod
 	def cluster_by_crime_stability(all_data):
 		num_clusters = 5
 
@@ -36,12 +47,12 @@ class k_means_stability_score(dml.Algorithm):
 		numpy_arr = array(pre_numpy_arr)
 
 		centroids, distortion = kmeans(numpy_arr, num_clusters)
-		print("ran cluster_by_crime_stability for " str(num_clusters) + "clusters")
-		# plt.scatter(numpy_arr[:, 0], numpy_arr[:, 1])
-		# plt.scatter(centroids[:, 0], centroids[:, 1], c='r')
-		# plt.show()
+		print("ran cluster_by_crime_stability with " + str(num_clusters) + " clusters")
+		# graph_clusters
+		# k_means_stability_score.graph_clusters(numpy_arr, centroids)
 		return 0
 
+	@staticmethod
 	def cluster_by_crime_evictions_stability(all_data):
 		num_clusters = 11
 		# scipy wants data of type array([[x1, x2], [x1, x2], [x1, x2]])
@@ -54,13 +65,12 @@ class k_means_stability_score(dml.Algorithm):
 		# TODO: maybe try to 'whiten'?
 
 		centroids, distortion = kmeans(numpy_arr, num_clusters)
-		print("ran cluster_by_crime_evictions_stability with " + str(num_clusters) + "clusters")
+		print("ran cluster_by_crime_evictions_stability with " + str(num_clusters) + " clusters")
 		# assign each sample to a cluster		
-		# plt.scatter(numpy_arr[:, 0], numpy_arr[:, 1])
-		# plt.scatter(centroids[:, 0], centroids[:, 1], c='r')
-		# plt.show()
+		# k_means_stability_score.graph_clusters(numpy_arr, centroids)
 		return 0
 
+	@staticmethod
 	def get_stability_scores_from_repo():
 		'''
 		Gets and returns the data from the stability_score collection.
@@ -94,10 +104,11 @@ class k_means_stability_score(dml.Algorithm):
 		startTime = datetime.datetime.now()
 		stability_scores = this.get_stability_scores_from_repo()
 
+		# ran k-means algorithm on various combinations of data
+		# possible to see visual output via uncommenting `graph_clusters`
+		# function calls in each of the methods below
 		this.cluster_by_crime_evictions_stability(stability_scores)
-
 		this.cluster_by_crime_stability(stability_scores)
-
 		this.cluster_by_evictions_stability(stability_scores)
 
 		return {"start": startTime, "end":  datetime.datetime.now()}
@@ -136,5 +147,5 @@ class k_means_stability_score(dml.Algorithm):
 
 		return doc
 
-k_means_stability_score.execute()
-k_means_stability_score.provenance()
+# k_means_stability_score.execute()
+# k_means_stability_score.provenance()
