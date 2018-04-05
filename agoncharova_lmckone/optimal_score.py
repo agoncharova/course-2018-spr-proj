@@ -59,13 +59,16 @@ class optimal_score(dml.Algorithm):
 		return corr[0]
 
 	@staticmethod
-	def compute_optimal_num_businesses(all_data):
+	def compute_optimal_num_businesses(all_data, trial):
 		'''
 		High number of evictions and crimes lead to a higher score, so 
 		we want to lower the score?
 		z3 solver allows us to solve proprietary equations with
 		various constraints.
 		'''
+		num = 204
+		if(trial): 
+			num = 100
 		# setup
 		df = pd.DataFrame(all_data)
 		# isolate and format the vars
@@ -75,7 +78,7 @@ class optimal_score(dml.Algorithm):
 		additional_businesses = [9999]*len(businesses) # 204 entries
 		results = []
 		# let's optimize
-		for i in range(204):
+		for i in range(num):
 			S = Optimize()
 			new = Real('new'+str(i))
 			num_businesses = Int('num_businesses'+str(i))
@@ -114,7 +117,7 @@ class optimal_score(dml.Algorithm):
 		all_data = this.get_stability_scores_from_repo()
 		corr = this.explore_business_data(all_data)
 		print("correlation between businesses and stability score is: " + str(corr))
-		results = this.compute_optimal_num_businesses(all_data)
+		results = this.compute_optimal_num_businesses(all_data, trial)
 
 		client = dml.pymongo.MongoClient()
 		repo = client.repo
