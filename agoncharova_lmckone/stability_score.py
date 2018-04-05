@@ -16,7 +16,7 @@ class stability_score(dml.Algorithm):
         income, and number of businesses.
 
 
-        Code adapted from https://github.com/Data-Mechanics/course-2017-fal-proj/blob/master/jdbrawn_jliang24_slarbi_tpotye/safetyScore.py
+        Code adapted from github users jdbrawn, jliang24, slarbi, and tpotye
         '''
 
         startTime = datetime.datetime.now()
@@ -46,6 +46,7 @@ class stability_score(dml.Algorithm):
         eviction_max_minus_min = float(maxEvictions - minEvictions)
         crime_max_minus_min = float(maxCrimes - minCrimes)
 
+        count = 100 # 
         # calculate score
         for entry in tract_counts.find():
 
@@ -62,10 +63,16 @@ class stability_score(dml.Algorithm):
                 'crimeScore': crimeScore,
                 'businesses': entry['properties']['businesses']
                 })
+            if(trial):
+                if(count <= 0):
+                    break
+                count += 1
 
         repo.dropCollection('stability_score')
-        repo.createCollection('stability_score')
+        repo.createCollection('stability_score')        
         repo['agoncharova_lmckone.stability_score'].insert_many(score)
+        print("trial mode: " + trial)
+        print("inserted " + str(len(score)) + " stability score data points")
 
         repo.logout()
         endTime = datetime.datetime.now()
